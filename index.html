@@ -6,755 +6,930 @@
 <title>간판 견적 시스템</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:        #0f1117;
-    --surface:   #1a1d27;
-    --surface2:  #22263a;
-    --border:    #2e3350;
-    --accent:    #4f7cff;
-    --accent2:   #7c5fff;
-    --green:     #22c55e;
-    --amber:     #f59e0b;
-    --red:       #ef4444;
-    --text:      #e8eaf6;
-    --muted:     #8892b0;
-    --mono:      'JetBrains Mono', monospace;
-    --sans:      'Noto Sans KR', sans-serif;
-  }
+:root {
+  --bg:#0f1117; --surf:#1a1d27; --surf2:#22263a; --surf3:#2a2f47;
+  --border:#2e3350; --border2:#3d4468;
+  --acc:#4f7cff; --acc2:#7c5fff; --acc3:#06d6a0;
+  --warn:#f59e0b; --red:#ef4444; --green:#22c55e;
+  --tx:#e8eaf6; --tx2:#8892b0; --tx3:#4a5280;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Noto Sans KR',sans-serif;
+  --r:10px; --r2:14px; --r3:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;opacity:0.25;pointer-events:none;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+.app{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:20px 16px 60px;}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 14px;
-    min-height: 100vh;
-  }
+/* ── 헤더 ── */
+header{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r3);margin-bottom:20px;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo h1{font-size:17px;font-weight:700;}
+.logo p{font-size:11px;color:var(--tx2);margin-top:1px;}
+.hbadge{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:99px;
+  background:rgba(79,124,255,.12);color:var(--acc);border:1px solid rgba(79,124,255,.2);}
 
-  /* ── 배경 패턴 ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.3;
-    pointer-events: none;
-  }
+/* ── 탭 ── */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;}
+.tab{padding:10px;text-align:center;font-size:13px;font-weight:500;
+  background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);
+  cursor:pointer;transition:all .15s;color:var(--tx2);}
+.tab:hover{border-color:var(--border2);color:var(--tx);}
+.tab.on{background:var(--surf2);border-color:var(--acc);color:var(--acc);}
+.tab-icon{font-size:16px;display:block;margin-bottom:3px;}
 
-  .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+/* ── 2단 레이아웃 ── */
+.layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start;}
+@media(max-width:820px){.layout{grid-template-columns:1fr;}}
 
-  /* ── 헤더 ── */
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 28px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    margin-bottom: 24px;
-  }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo-icon {
-    width: 40px; height: 40px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-  .logo-text h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-  .logo-text p  { font-size: 12px; color: var(--muted); margin-top: 1px; }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .badge {
-    font-family: var(--mono); font-size: 11px;
-    padding: 4px 10px; border-radius: 99px;
-    background: rgba(79,124,255,0.12); color: var(--accent);
-    border: 1px solid rgba(79,124,255,0.25);
-  }
+/* ── 패널 ── */
+.panel{display:none;} .panel.on{display:block;}
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:20px;}
+.card+.card{margin-top:12px;}
+.sec-title{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--tx2);
+  text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.sec-title::before{content:'';display:inline-block;width:3px;height:13px;border-radius:2px;
+  background:linear-gradient(var(--acc),var(--acc2));}
 
-  /* ── 2단 레이아웃 ── */
-  .layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
-  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+/* ── 폼 공통 ── */
+label{display:block;font-size:11px;font-weight:500;color:var(--tx2);margin-bottom:5px;letter-spacing:.04em;}
+input[type=number],input[type=text],select,textarea{
+  width:100%;padding:9px 12px;background:var(--surf2);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--tx);font-family:var(--sans);font-size:13px;
+  transition:border-color .15s,box-shadow .15s;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(79,124,255,.12);}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+select option{background:#1a1d27;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.field{margin-bottom:12px;}
 
-  /* ── 카드 ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-  }
-  .card-title {
-    font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
-    color: var(--muted); text-transform: uppercase;
-    margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
-  }
-  .card-title::before {
-    content: ''; display: inline-block;
-    width: 3px; height: 14px; border-radius: 2px;
-    background: linear-gradient(var(--accent), var(--accent2));
-  }
+/* ── 검색 자재 ── */
+.search-wrap{position:relative;margin-bottom:12px;}
+.search-wrap input{padding-left:34px;}
+.search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--tx2);font-size:14px;}
+.search-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100;
+  background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);
+  max-height:220px;overflow-y:auto;display:none;}
+.search-list.show{display:block;}
+.search-item{padding:8px 12px;font-size:13px;cursor:pointer;transition:background .1s;}
+.search-item:hover,.search-item.sel{background:var(--surf3);}
+.search-item .tag{font-size:10px;padding:1px 6px;border-radius:99px;margin-left:6px;font-weight:500;}
+.tag-normal{background:rgba(6,214,160,.12);color:var(--acc3);}
+.tag-black{background:rgba(136,146,176,.1);color:var(--tx2);}
+.tag-acrylic{background:rgba(79,124,255,.12);color:var(--acc);}
+.tag-alumite{background:rgba(245,158,11,.12);color:var(--warn);}
+.selected-mat{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;background:rgba(79,124,255,.08);border:1px solid rgba(79,124,255,.2);
+  border-radius:var(--r);margin-bottom:12px;font-size:13px;}
+.selected-mat .clr{background:none;border:none;color:var(--tx2);cursor:pointer;font-size:16px;line-height:1;}
+.selected-mat .clr:hover{color:var(--red);}
 
-  /* ── 폼 요소 ── */
-  .field { margin-bottom: 14px; }
-  label {
-    display: block; font-size: 12px; color: var(--muted);
-    font-weight: 500; margin-bottom: 6px; letter-spacing: 0.04em;
-  }
-  select, input[type=number], input[type=text] {
-    width: 100%; padding: 10px 14px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; color: var(--text);
-    font-family: var(--sans); font-size: 14px;
-    transition: border-color .2s, box-shadow .2s;
-    appearance: none; -webkit-appearance: none;
-  }
-  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-  select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,124,255,.15); }
-  select option { background: #1a1d27; }
+/* ── 토글 ── */
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.tslider{position:absolute;inset:0;cursor:pointer;background:var(--border2);border-radius:22px;transition:.2s;}
+.tslider::before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;
+  background:var(--tx2);bottom:3px;left:3px;transition:.2s;}
+.toggle input:checked+.tslider{background:var(--acc);}
+.toggle input:checked+.tslider::before{transform:translateX(18px);background:#fff;}
+.toggle-lbl{font-size:13px;color:var(--tx);}
 
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+/* ── 버튼 ── */
+.btn{width:100%;padding:11px;border:none;border-radius:var(--r);cursor:pointer;
+  font-family:var(--sans);font-size:13px;font-weight:600;transition:all .15s;}
+.btn-pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;}
+.btn-pri:hover{opacity:.88;transform:translateY(-1px);}
+.btn-sec{background:var(--surf2);color:var(--tx);border:1px solid var(--border);margin-top:8px;}
+.btn-sec:hover{border-color:var(--acc);color:var(--acc);}
+.btn-sm{padding:5px 12px;width:auto;font-size:12px;border-radius:7px;
+  background:var(--surf3);color:var(--tx2);border:1px solid var(--border);}
+.btn-sm:hover{border-color:var(--acc2);color:var(--acc2);}
+.btn-icon{padding:6px 10px;width:auto;font-size:13px;border-radius:7px;
+  background:rgba(239,68,68,.08);color:var(--red);border:1px solid rgba(239,68,68,.15);}
+.btn-icon:hover{background:rgba(239,68,68,.15);}
 
-  /* ── 체크박스 ── */
-  .checkbox-field { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider {
-    position: absolute; inset: 0; cursor: pointer;
-    background: var(--border); border-radius: 24px;
-    transition: .2s;
-  }
-  .toggle-slider::before {
-    content: ''; position: absolute;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--muted); bottom: 3px; left: 3px;
-    transition: .2s;
-  }
-  .toggle input:checked + .toggle-slider { background: var(--accent); }
-  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: white; }
-  .checkbox-label { font-size: 13px; color: var(--text); }
+/* ── 결과박스 ── */
+.result{margin-top:14px;padding:14px;background:var(--surf2);border:1px solid var(--border);
+  border-radius:var(--r);display:none;}
+.result.show{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.result-line{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;}
+.result-line+.result-line{border-top:1px solid var(--border);}
+.rk{color:var(--tx2);}
+.rv{font-family:var(--mono);color:var(--tx);}
+.result-total{margin-top:10px;padding:12px;text-align:center;
+  background:linear-gradient(135deg,rgba(79,124,255,.08),rgba(124,95,255,.08));
+  border:1px solid rgba(79,124,255,.2);border-radius:var(--r);}
+.rt-lbl{font-size:11px;color:var(--tx2);margin-bottom:3px;}
+.rt-amt{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--acc);}
+.rt-sub{font-size:11px;color:var(--tx2);margin-top:2px;}
 
-  /* ── 버튼 ── */
-  .btn {
-    width: 100%; padding: 13px;
-    border: none; border-radius: 12px; cursor: pointer;
-    font-family: var(--sans); font-size: 14px; font-weight: 600;
-    transition: all .2s; letter-spacing: 0.02em;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-  }
-  .btn-primary:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(79,124,255,.3); }
-  .btn-primary:active { transform: translateY(0); }
-  .btn-secondary {
-    background: var(--surface2); color: var(--text);
-    border: 1px solid var(--border); margin-top: 8px;
-  }
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-danger {
-    background: rgba(239,68,68,.1); color: var(--red);
-    border: 1px solid rgba(239,68,68,.2); margin-top: 8px;
-  }
-  .btn-danger:hover { background: rgba(239,68,68,.18); }
+/* ── 채널 행 ── */
+.ch-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.ch-row{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;}
+.ch-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ch-num{font-size:11px;font-weight:600;color:var(--acc);background:rgba(79,124,255,.1);
+  padding:2px 8px;border-radius:99px;}
+.ch-grid{display:grid;grid-template-columns:90px 1fr 1fr 50px;gap:8px;align-items:end;}
+.ch-price{font-family:var(--mono);font-size:12px;color:var(--acc3);padding:9px 0;text-align:right;}
 
-  /* ── 결과 카드 ── */
-  .result-box {
-    margin-top: 18px; padding: 18px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 12px; display: none;
-  }
-  .result-box.show { display: block; animation: fadeUp .25s ease; }
-  @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-  .result-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
-  .result-line + .result-line { border-top: 1px solid var(--border); }
-  .result-key { font-size: 12px; color: var(--muted); }
-  .result-val { font-family: var(--mono); font-size: 13px; color: var(--text); }
-  .result-total {
-    margin-top: 12px; padding: 14px;
-    background: linear-gradient(135deg, rgba(79,124,255,.1), rgba(124,95,255,.1));
-    border: 1px solid rgba(79,124,255,.25);
-    border-radius: 10px; text-align: center;
-  }
-  .result-total .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-  .result-total .amount { font-family: var(--mono); font-size: 26px; font-weight: 600; color: var(--accent); }
-  .result-total .vat-note { font-size: 11px; color: var(--muted); margin-top: 3px; }
+/* ── 간판 ── */
+.sign-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.fl-info{padding:8px 12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);
+  border-radius:var(--r);font-size:12px;color:var(--warn);margin-bottom:12px;display:none;}
+.fl-info.show{display:block;}
 
-  .add-btn { margin-top: 14px; }
+/* ── 견적 목록 ── */
+.quote-list{background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:20px;}
+.client-row{margin-bottom:14px;}
+.q-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.q-table th{font-size:11px;color:var(--tx2);font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;padding:8px 8px;text-align:left;border-bottom:1px solid var(--border);}
+.q-table td{padding:9px 8px;font-size:12px;border-bottom:1px solid rgba(46,51,80,.4);vertical-align:middle;}
+.q-table tr:last-child td{border-bottom:none;}
+.q-table tr:hover td{background:rgba(255,255,255,.02);}
+.price-cell{font-family:var(--mono);color:var(--acc);font-weight:600;}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--tx2);font-size:15px;
+  padding:2px 5px;border-radius:5px;transition:.12s;}
+.del-btn:hover{background:rgba(239,68,68,.12);color:var(--red);}
+.empty-row td{text-align:center;color:var(--tx2);padding:28px!important;}
+.badge-sm{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;white-space:nowrap;}
+.b-cut{background:rgba(6,214,160,.1);color:var(--acc3);}
+.b-cnc{background:rgba(79,124,255,.1);color:var(--acc);}
+.b-laser{background:rgba(124,95,255,.1);color:var(--acc2);}
+.b-print{background:rgba(245,158,11,.1);color:var(--warn);}
+.b-ch{background:rgba(239,68,68,.1);color:var(--red);}
+.b-sign{background:rgba(34,197,94,.1);color:var(--green);}
 
-  /* ── 품목 테이블 ── */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  th {
-    font-size: 11px; color: var(--muted); font-weight: 600;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    padding: 10px 12px; text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  td { padding: 11px 12px; font-size: 13px; border-bottom: 1px solid rgba(46,51,80,.5); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255,255,255,.02); }
-  .price-cell { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-  .del-btn {
-    background: none; border: none; cursor: pointer;
-    color: var(--muted); font-size: 16px; padding: 2px 6px;
-    border-radius: 6px; transition: .15s;
-  }
-  .del-btn:hover { background: rgba(239,68,68,.15); color: var(--red); }
-  .empty-row td { text-align: center; color: var(--muted); font-size: 13px; padding: 32px; }
+/* ── 합계 ── */
+.summary{padding:14px 16px;background:var(--surf2);border:1px solid var(--border);
+  border-radius:var(--r);margin-top:10px;}
+.sum-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;}
+.sum-row.total{margin-top:8px;padding-top:10px;border-top:1px solid var(--border);font-size:15px;font-weight:700;}
+.sum-row.total .sv{font-family:var(--mono);color:var(--green);font-size:18px;}
+.sk{color:var(--tx2);}
+.sv{font-family:var(--mono);}
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.btn-print{padding:10px;border-radius:var(--r);border:none;cursor:pointer;
+  font-family:var(--sans);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;}
+.bp-main{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;}
+.bp-main:hover{opacity:.88;}
+.bp-sub{background:var(--surf2);color:var(--tx);border:1px solid var(--border);}
+.bp-sub:hover{border-color:var(--green);color:var(--green);}
 
-  /* ── 합계 영역 ── */
-  .summary {
-    margin-top: 16px; padding: 16px 20px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 12px;
-  }
-  .summary-row { display: flex; justify-content: space-between; padding: 5px 0; }
-  .summary-row.total {
-    margin-top: 10px; padding-top: 14px;
-    border-top: 1px solid var(--border);
-    font-size: 16px; font-weight: 700;
-  }
-  .summary-row.total .s-val { font-family: var(--mono); color: var(--green); font-size: 20px; }
-  .s-key { font-size: 13px; color: var(--muted); }
-  .s-val { font-family: var(--mono); font-size: 14px; }
-
-  /* ── 액션 버튼 ── */
-  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
-  .btn-print {
-    padding: 11px; border-radius: 10px; border: none; cursor: pointer;
-    font-family: var(--sans); font-size: 13px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    transition: all .2s;
-  }
-  .btn-print-main {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-  }
-  .btn-print-main:hover { opacity: .88; transform: translateY(-1px); }
-  .btn-print-sub {
-    background: var(--surface2); color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .btn-print-sub:hover { border-color: var(--green); color: var(--green); }
-
-  /* ── 단위 안내 ── */
-  .unit-hint {
-    margin-top: 6px; padding: 8px 12px;
-    background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.2);
-    border-radius: 8px; font-size: 11px; color: var(--amber);
-    display: none;
-  }
-  .unit-hint.show { display: block; }
-
-  /* ── 인쇄 스타일 ── */
-  @media print {
-    body { background: white; color: black; }
-    body::before { display: none; }
-    header, .layout > div:first-child, .action-row { display: none !important; }
-    .card { border: none; padding: 0; background: white; }
-    .card-title { color: #333; }
-    th { color: #555; border-bottom: 2px solid #ddd; }
-    td { border-bottom: 1px solid #eee; color: #222; }
-    .price-cell { color: #1a56db; }
-    .summary { background: #f9f9f9; border: 1px solid #ddd; }
-    .s-val.green { color: #166534; }
-    .print-header { display: block !important; }
-  }
-  .print-header {
-    display: none;
-    text-align: center; padding: 20px 0 10px;
-    border-bottom: 2px solid #333; margin-bottom: 20px;
-  }
-  .print-header h2 { font-size: 24px; }
-  .print-header p  { font-size: 13px; color: #666; margin-top: 4px; }
-
-  /* ── 태그 ── */
-  .tag {
-    display: inline-block; font-size: 10px; padding: 2px 8px;
-    border-radius: 99px; font-weight: 600; letter-spacing: 0.04em;
-  }
-  .tag-cut  { background: rgba(34,197,94,.12);  color: var(--green); }
-  .tag-cnc  { background: rgba(79,124,255,.12); color: var(--accent); }
-  .tag-none { background: rgba(136,146,176,.1); color: var(--muted); }
-  .tag-print { background: rgba(245,158,11,.12); color: var(--amber); }
-
-  /* ── 고객명 입력 ── */
-  .client-row { display: flex; gap: 10px; margin-bottom: 18px; }
-  .client-row input { flex: 1; }
+/* ── 인쇄 ── */
+@media print{
+  body{background:#fff;color:#000;}
+  body::before{display:none;}
+  header,.tabs,.layout>div:first-child,.action-row{display:none!important;}
+  .quote-list{border:none;padding:0;}
+  .q-table th,.q-table td{color:#222;border-color:#ddd;}
+  .price-cell{color:#1a56db;}
+  .summary{background:#f9f9f9;border-color:#ddd;}
+  .sum-row.total .sv{color:#166534;}
+  .ph{display:block!important;}
+}
+.ph{display:none;text-align:center;padding:16px 0 10px;border-bottom:2px solid #333;margin-bottom:16px;}
+.ph h2{font-size:22px;} .ph p{font-size:13px;color:#666;margin-top:3px;}
 </style>
 </head>
 <body>
 <div class="app">
+<div class="ph"><h2>견 적 서</h2><p id="phMeta"></p></div>
 
-  <!-- 인쇄용 헤더 -->
-  <div class="print-header">
-    <h2>견 적 서</h2>
-    <p id="printMeta"></p>
+<header>
+  <div class="logo">
+    <div class="logo-icon">📋</div>
+    <div><h1>간판 견적 시스템</h1><p>판재 · 채널 · 간판 · 스카시 통합 견적</p></div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <span class="hbadge">VAT 별도</span>
+    <span class="hbadge" id="itemCnt">품목 0개</span>
+  </div>
+</header>
+
+<!-- 탭 -->
+<div class="tabs">
+  <div class="tab on" onclick="switchTab(0)"><span class="tab-icon">🗂</span>판재 가공</div>
+  <div class="tab" onclick="switchTab(1)"><span class="tab-icon">🔡</span>채널 간판</div>
+  <div class="tab" onclick="switchTab(2)"><span class="tab-icon">📺</span>프레임 간판</div>
+  <div class="tab" onclick="switchTab(3)"><span class="tab-icon">✦</span>스카시</div>
+</div>
+
+<div class="layout">
+<div>
+
+<!-- ══ 탭0: 판재 ══ -->
+<div class="panel on" id="tab0">
+<div class="card">
+  <div class="sec-title">자재 검색 & 가공</div>
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="text" id="matSearch" placeholder="자재 검색 (예: 아크릴 5T, 포맥스 3T...)" oninput="searchMat(this.value)" onblur="hideList()" autocomplete="off">
+    <div class="search-list" id="matList"></div>
+  </div>
+  <div id="selMatBox" style="display:none">
+    <div class="selected-mat">
+      <span id="selMatLabel">—</span>
+      <button class="clr" onclick="clearMat()">×</button>
+    </div>
   </div>
 
-  <!-- 앱 헤더 -->
-  <header>
-    <div class="logo">
-      <div class="logo-icon">📋</div>
-      <div class="logo-text">
-        <h1>간판 견적 시스템</h1>
-        <p>포맥스 · 아크릴 · 알마이트 · 간판 · 파이프</p>
-      </div>
+  <div class="row2">
+    <div class="field"><label>가로 (cm)</label><input type="number" id="matW" placeholder="예: 90" min="0.1" step="0.1"></div>
+    <div class="field"><label>세로 (cm)</label><input type="number" id="matH" placeholder="예: 60" min="0.1" step="0.1"></div>
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label>가공방식</label>
+      <select id="procType">
+        <option value="재단">재단 (×1.5)</option>
+        <option value="cnc">CNC (×2.0)</option>
+        <option value="레이저">레이저 (×2.5)</option>
+        <option value="없음">없음 (원판 그대로)</option>
+      </select>
     </div>
-    <div class="header-right">
-      <span class="badge">VAT 별도</span>
-      <span class="badge" id="itemCount">품목 0개</span>
+    <div class="field"><label>수량</label><input type="number" id="matQty" value="1" min="1" step="1"></div>
+  </div>
+  <div class="toggle-row">
+    <label class="toggle"><input type="checkbox" id="isPrint"><span class="tslider"></span></label>
+    <span class="toggle-lbl">평판 인쇄 포함 (18,000원/㎡, 최소 10,000원)</span>
+  </div>
+  <div class="toggle-row">
+    <label class="toggle"><input type="checkbox" id="isBackPrint"><span class="tslider"></span></label>
+    <span class="toggle-lbl">배면 인쇄 포함 (36,000원/㎡, 최소 10,000원)</span>
+  </div>
+  <button class="btn btn-pri" onclick="calcMat()">단가 계산</button>
+  <div class="result" id="matResult">
+    <div id="matLines"></div>
+    <div class="result-total">
+      <div class="rt-lbl">최종 권장가 (VAT 별도)</div>
+      <div class="rt-amt" id="matAmt">—</div>
+      <div class="rt-sub" id="matSub"></div>
     </div>
-  </header>
+    <button class="btn btn-sec" onclick="addMatToList()">+ 견적 목록에 추가</button>
+  </div>
+</div>
+</div>
 
-  <div class="layout">
-
-    <!-- ── 왼쪽: 입력 영역 ── -->
-    <div>
-      <div class="card">
-        <div class="card-title">품목 입력</div>
-
-        <!-- 자재 선택 -->
-        <div class="field">
-          <label>자재 선택</label>
-          <select id="material" onchange="onMaterialChange()">
-            <optgroup label="── 포맥스 백색 ──">
-              <option value="포맥스_2T_90x180">포맥스 2T 백색 · 90×180cm</option>
-              <option value="포맥스_2T_120x240">포맥스 2T 백색 · 120×240cm</option>
-              <option value="포맥스_3T_90x180">포맥스 3T 백색 · 90×180cm</option>
-              <option value="포맥스_3T_120x240">포맥스 3T 백색 · 120×240cm</option>
-              <option value="포맥스_5T_90x180">포맥스 5T 백색 · 90×180cm</option>
-              <option value="포맥스_5T_120x240">포맥스 5T 백색 · 120×240cm</option>
-              <option value="포맥스_8T_90x180">포맥스 8T 백색 · 90×180cm</option>
-              <option value="포맥스_8T_120x240">포맥스 8T 백색 · 120×240cm</option>
-              <option value="포맥스_10T_90x180">포맥스 10T 백색 · 90×180cm</option>
-              <option value="포맥스_10T_120x240">포맥스 10T 백색 · 120×240cm</option>
-            </optgroup>
-            <optgroup label="── 포맥스 검정 ──">
-              <option value="검정포맥스_2T_90x180">검정포맥스 2T · 90×180cm</option>
-              <option value="검정포맥스_2T_120x240">검정포맥스 2T · 120×240cm</option>
-              <option value="검정포맥스_3T_90x180">검정포맥스 3T · 90×180cm</option>
-              <option value="검정포맥스_3T_120x240">검정포맥스 3T · 120×240cm</option>
-              <option value="검정포맥스_5T_90x180">검정포맥스 5T · 90×180cm</option>
-              <option value="검정포맥스_5T_120x240">검정포맥스 5T · 120×240cm</option>
-              <option value="검정포맥스_8T_90x180">검정포맥스 8T · 90×180cm</option>
-              <option value="검정포맥스_8T_120x240">검정포맥스 8T · 120×240cm</option>
-              <option value="검정포맥스_10T_90x180">검정포맥스 10T · 90×180cm</option>
-              <option value="검정포맥스_10T_120x240">검정포맥스 10T · 120×240cm</option>
-            </optgroup>
-            <optgroup label="── 아크릴 ──">
-              <option value="아크릴_5T_90x180">아크릴 5T · 90×180cm</option>
-              <option value="아크릴_5T_122x244">아크릴 5T · 122×244cm</option>
-              <option value="아크릴_8T_90x180">아크릴 8T · 90×180cm</option>
-              <option value="아크릴_8T_120x240">아크릴 8T · 120×240cm</option>
-              <option value="아크릴_10T_90x180">아크릴 10T · 90×180cm</option>
-              <option value="아크릴_10T_120x240">아크릴 10T · 120×240cm</option>
-            </optgroup>
-            <optgroup label="── 알마이트 ──">
-              <option value="알마이트_2T_122x244">알마이트 2T · 122×244cm</option>
-            </optgroup>
-            <optgroup label="── 간판 (mm 단위) ──">
-              <option value="조명용 간판">조명용 간판</option>
-              <option value="비조명 간판">비조명 간판</option>
-            </optgroup>
-            <optgroup label="── 파이프 (mm 단위) ──">
-              <option value="15각 파이프">15각 파이프</option>
-              <option value="19각 파이프">19각 파이프</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <!-- 단위 안내 -->
-        <div class="unit-hint" id="unitHint">
-          📐 간판·파이프는 <strong>mm</strong> 단위로 입력하세요. 파이프는 세로 비워도 됩니다.
-        </div>
-
-        <!-- 사이즈 입력 -->
-        <div class="row2">
-          <div class="field">
-            <label id="wLabel">가로 (cm)</label>
-            <input type="number" id="width" placeholder="예: 90" min="1" step="0.1">
-          </div>
-          <div class="field">
-            <label id="hLabel">세로 (cm)</label>
-            <input type="number" id="height" placeholder="예: 60" min="0" step="0.1">
-          </div>
-        </div>
-
-        <!-- 가공방식 + 수량 -->
-        <div class="row2">
-          <div class="field" id="procField">
-            <label>가공방식</label>
-            <select id="procType">
-              <option value="재단">재단 (×1.5)</option>
-              <option value="레이저">레이저/CNC (×2.5)</option>
-              <option value="없음">없음 (원판 그대로)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>수량</label>
-            <input type="number" id="qty" value="1" min="1" step="1">
-          </div>
-        </div>
-
-        <!-- 평판인쇄 토글 -->
-        <div class="checkbox-field" id="printField">
-          <label class="toggle">
-            <input type="checkbox" id="isPrinted">
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="checkbox-label">평판 인쇄 포함 (18,000원/㎡, 최소 10,000원)</span>
-        </div>
-
-        <!-- 계산 버튼 -->
-        <button class="btn btn-primary" onclick="calculate()">단가 계산</button>
-
-        <!-- 결과 박스 -->
-        <div class="result-box" id="resultBox">
-          <div id="resultLines"></div>
-          <div class="result-total">
-            <div class="label">개당 최종 권장가 (VAT 별도)</div>
-            <div class="amount" id="resultAmount">—</div>
-            <div class="vat-note" id="resultVatNote"></div>
-          </div>
-          <button class="btn btn-secondary add-btn" onclick="addToList()">+ 견적 목록에 추가</button>
-        </div>
-      </div>
+<!-- ══ 탭1: 채널 ══ -->
+<div class="panel" id="tab1">
+<div class="card">
+  <div class="sec-title">채널 글자별 입력</div>
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="text" id="chSearch" placeholder="각수 검색 (예: 30각, 60각, 125각...)" oninput="searchCh(this.value)" onblur="hideChList()" autocomplete="off">
+    <div class="search-list" id="chSearchList"></div>
+  </div>
+  <p style="font-size:11px;color:var(--tx2);margin-bottom:10px;">검색 후 선택하거나 아래 + 글자 추가 버튼으로 직접 입력</p>
+  <div class="ch-rows" id="chRows"></div>
+  <button class="btn btn-sec" onclick="addChRow()" style="margin-bottom:12px;">+ 글자 추가</button>
+  <button class="btn btn-pri" onclick="calcChannel()">채널 합계 계산</button>
+  <div class="result" id="chResult">
+    <div id="chLines"></div>
+    <div class="result-total">
+      <div class="rt-lbl">채널 전체 합계 (VAT 별도)</div>
+      <div class="rt-amt" id="chAmt">—</div>
     </div>
+    <button class="btn btn-sec" onclick="addChToList()">+ 견적 목록에 추가</button>
+  </div>
+</div>
+</div>
 
-    <!-- ── 오른쪽: 견적 목록 ── -->
-    <div>
-      <div class="card">
-        <div class="card-title">견적 목록</div>
-
-        <!-- 고객명 -->
-        <div class="client-row">
-          <input type="text" id="clientName" placeholder="고객사명 입력 (선택)">
-        </div>
-
-        <!-- 테이블 -->
-        <div class="table-wrap">
-          <table id="quoteTable">
-            <thead>
-              <tr>
-                <th>품목</th>
-                <th>사이즈</th>
-                <th>가공</th>
-                <th>수량</th>
-                <th>단가</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="quoteBody">
-              <tr class="empty-row"><td colspan="6">품목을 추가해주세요</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 합계 -->
-        <div class="summary" id="summaryBox" style="display:none">
-          <div class="summary-row">
-            <span class="s-key">공급가액 (VAT 별도)</span>
-            <span class="s-val" id="subtotalEl">—</span>
-          </div>
-          <div class="summary-row">
-            <span class="s-key">부가세 (10%)</span>
-            <span class="s-val" id="vatEl">—</span>
-          </div>
-          <div class="summary-row total">
-            <span class="s-key">합 계 (VAT 포함)</span>
-            <span class="s-val" id="totalEl">—</span>
-          </div>
-        </div>
-
-        <!-- 액션 버튼 -->
-        <div class="action-row" id="actionRow" style="display:none">
-          <button class="btn-print btn-print-main" onclick="printQuote()">
-            🖨️ 견적서 인쇄 / PDF
-          </button>
-          <button class="btn-print btn-print-sub" onclick="clearAll()">
-            🗑️ 전체 초기화
-          </button>
-        </div>
-      </div>
+<!-- ══ 탭2: 간판 ══ -->
+<div class="panel" id="tab2">
+<div class="card">
+  <div class="sec-title">프레임 간판 / 돌출간판</div>
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="text" id="signSearch" placeholder="간판 검색 (예: 단면, 양면, 조명, 돌출...)" oninput="searchSign(this.value)" onblur="hideSignList()" autocomplete="off">
+    <div class="search-list" id="signSearchList"></div>
+  </div>
+  <div id="selSignBox" style="display:none">
+    <div class="selected-mat">
+      <span id="selSignLabel">—</span>
+      <button class="clr" onclick="clearSign()">×</button>
     </div>
+  </div>
+  <input type="hidden" id="signType" value="">
+  <div class="sign-grid">
+    <div class="field"><label>가로 (cm)</label><input type="number" id="signW" placeholder="예: 200" min="1" step="1" oninput="updateFlInfo()"></div>
+    <div class="field"><label>세로 (cm)</label><input type="number" id="signH" placeholder="예: 120" min="1" step="1" oninput="updateFlInfo()"></div>
+  </div>
+  <div class="fl-info" id="flInfo"></div>
+  <button class="btn btn-pri" onclick="calcSign()">간판 계산</button>
+  <div class="result" id="signResult">
+    <div id="signLines"></div>
+    <div class="result-total">
+      <div class="rt-lbl">최종 권장가 (VAT 별도)</div>
+      <div class="rt-amt" id="signAmt">—</div>
+    </div>
+    <button class="btn btn-sec" onclick="addSignToList()">+ 견적 목록에 추가</button>
+  </div>
+</div>
+</div>
 
-  </div><!-- /layout -->
+<!-- ══ 탭3: 스카시 ══ -->
+<div class="panel" id="tab3">
+<div class="card">
+  <div class="sec-title">고무스카시 검색</div>
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="text" id="skSearch" placeholder="스카시 검색 (예: 30각 30T, 50각 수입밀러...)" oninput="searchSk(this.value)" onblur="hideSkList()" autocomplete="off">
+    <div class="search-list" id="skList"></div>
+  </div>
+  <div id="selSkBox" style="display:none">
+    <div class="selected-mat">
+      <span id="selSkLabel">—</span>
+      <button class="clr" onclick="clearSk()">×</button>
+    </div>
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label>시트 종류</label>
+      <select id="skSheet">
+        <option value="none">스카시만</option>
+        <option value="sheet">시트지/실사 부착</option>
+        <option value="solven">솔벤실사 부착</option>
+      </select>
+    </div>
+    <div class="field"><label>수량</label><input type="number" id="skQty" value="1" min="1" step="1"></div>
+  </div>
+  <button class="btn btn-pri" onclick="calcSkasi()">스카시 계산</button>
+  <div class="result" id="skResult">
+    <div id="skLines"></div>
+    <div class="result-total">
+      <div class="rt-lbl">최종 권장가 (VAT 별도)</div>
+      <div class="rt-amt" id="skAmt">—</div>
+      <div class="rt-sub" id="skSub"></div>
+    </div>
+    <button class="btn btn-sec" onclick="addSkToList()">+ 견적 목록에 추가</button>
+  </div>
+</div>
+</div>
+
+</div><!-- /left -->
+
+<!-- ══ 견적 목록 ══ -->
+<div>
+<div class="quote-list">
+  <div class="sec-title">견적 목록</div>
+  <div class="client-row">
+    <input type="text" id="clientName" placeholder="고객사명 (선택)">
+  </div>
+  <table class="q-table">
+    <thead><tr>
+      <th>품목</th><th>내용</th><th>수량</th><th>단가</th><th></th>
+    </tr></thead>
+    <tbody id="qBody"><tr class="empty-row"><td colspan="5">품목을 추가해주세요</td></tr></tbody>
+  </table>
+  <div class="summary" id="sumBox" style="display:none">
+    <div class="sum-row"><span class="sk">공급가액</span><span class="sv" id="subEl">—</span></div>
+    <div class="sum-row"><span class="sk">부가세 10%</span><span class="sv" id="vatEl">—</span></div>
+    <div class="sum-row total"><span class="sk">합 계</span><span class="sv" id="totEl">—</span></div>
+  </div>
+  <div class="action-row" id="actRow" style="display:none">
+    <button class="btn-print bp-main" onclick="doPrint()">🖨 인쇄 / PDF</button>
+    <button class="btn-print bp-sub" onclick="clearAll()">🗑 전체 초기화</button>
+  </div>
+</div>
+</div>
+
+</div><!-- /layout -->
 </div><!-- /app -->
 
 <script>
-// ════════════════════════════════════════════
-//  자재 DB & 계산 공식
-// ════════════════════════════════════════════
-const MATERIALS = {
-  // ── 포맥스 백색 ──
-  "포맥스_2T_90x180":       {w:90,  h:180, price:11000,  type:"normal"},
-  "포맥스_2T_120x240":      {w:120, h:240, price:16000,  type:"normal"},
-  "포맥스_3T_90x180":       {w:90,  h:180, price:13000,  type:"normal"},
-  "포맥스_3T_120x240":      {w:120, h:240, price:20000,  type:"normal"},
-  "포맥스_5T_90x180":       {w:90,  h:180, price:20000,  type:"normal"},
-  "포맥스_5T_120x240":      {w:120, h:240, price:33000,  type:"normal"},
-  "포맥스_8T_90x180":       {w:90,  h:180, price:34000,  type:"normal"},
-  "포맥스_8T_120x240":      {w:120, h:240, price:57000,  type:"normal"},
-  "포맥스_10T_90x180":      {w:90,  h:180, price:45000,  type:"normal"},
-  "포맥스_10T_120x240":     {w:120, h:240, price:73000,  type:"normal"},
-  // ── 포맥스 검정 ──
-  "검정포맥스_2T_90x180":   {w:90,  h:180, price:14000,  type:"black"},
-  "검정포맥스_2T_120x240":  {w:120, h:240, price:19000,  type:"black"},
-  "검정포맥스_3T_90x180":   {w:90,  h:180, price:19000,  type:"black"},
-  "검정포맥스_3T_120x240":  {w:120, h:240, price:26000,  type:"black"},
-  "검정포맥스_5T_90x180":   {w:90,  h:180, price:24000,  type:"black"},
-  "검정포맥스_5T_120x240":  {w:120, h:240, price:40000,  type:"black"},
-  "검정포맥스_8T_90x180":   {w:90,  h:180, price:41000,  type:"black"},
-  "검정포맥스_8T_120x240":  {w:120, h:240, price:71000,  type:"black"},
-  "검정포맥스_10T_90x180":  {w:90,  h:180, price:52000,  type:"black"},
-  "검정포맥스_10T_120x240": {w:120, h:240, price:88000,  type:"black"},
-  // ── 아크릴 ──
-  "아크릴_5T_90x180":       {w:90,  h:180, price:60000,  type:"acrylic"},
-  "아크릴_5T_122x244":      {w:122, h:244, price:100000, type:"acrylic"},
-  "아크릴_8T_90x180":       {w:90,  h:180, price:96000,  type:"acrylic_thick"},
-  "아크릴_8T_120x240":      {w:120, h:240, price:170000, type:"acrylic_thick"},
-  "아크릴_10T_90x180":      {w:90,  h:180, price:115000, type:"acrylic_thick"},
-  "아크릴_10T_120x240":     {w:120, h:240, price:210000, type:"acrylic_thick"},
-  // ── 알마이트 ──
-  "알마이트_2T_122x244":    {w:122, h:244, price:26000,  type:"alumite"}
+// ════════════════════════════════════════
+// 데이터
+// ════════════════════════════════════════
+const MAT = {
+  "포맥스_2T_90x180":       {w:90, h:180,price:11000,type:"normal",  label:"포맥스 2T 백색 · 90×180"},
+  "포맥스_2T_120x240":      {w:120,h:240,price:16000,type:"normal",  label:"포맥스 2T 백색 · 120×240"},
+  "포맥스_3T_90x180":       {w:90, h:180,price:13000,type:"normal",  label:"포맥스 3T 백색 · 90×180"},
+  "포맥스_3T_120x240":      {w:120,h:240,price:20000,type:"normal",  label:"포맥스 3T 백색 · 120×240"},
+  "포맥스_5T_90x180":       {w:90, h:180,price:20000,type:"normal",  label:"포맥스 5T 백색 · 90×180"},
+  "포맥스_5T_120x240":      {w:120,h:240,price:33000,type:"normal",  label:"포맥스 5T 백색 · 120×240"},
+  "포맥스_8T_90x180":       {w:90, h:180,price:34000,type:"normal",  label:"포맥스 8T 백색 · 90×180"},
+  "포맥스_8T_120x240":      {w:120,h:240,price:57000,type:"normal",  label:"포맥스 8T 백색 · 120×240"},
+  "포맥스_10T_90x180":      {w:90, h:180,price:45000,type:"normal",  label:"포맥스 10T 백색 · 90×180"},
+  "포맥스_10T_120x240":     {w:120,h:240,price:73000,type:"normal",  label:"포맥스 10T 백색 · 120×240"},
+  "검정포맥스_2T_90x180":   {w:90, h:180,price:14000,type:"black",   label:"검정포맥스 2T · 90×180"},
+  "검정포맥스_2T_120x240":  {w:120,h:240,price:19000,type:"black",   label:"검정포맥스 2T · 120×240"},
+  "검정포맥스_3T_90x180":   {w:90, h:180,price:19000,type:"black",   label:"검정포맥스 3T · 90×180"},
+  "검정포맥스_3T_120x240":  {w:120,h:240,price:26000,type:"black",   label:"검정포맥스 3T · 120×240"},
+  "검정포맥스_5T_90x180":   {w:90, h:180,price:24000,type:"black",   label:"검정포맥스 5T · 90×180"},
+  "검정포맥스_5T_120x240":  {w:120,h:240,price:40000,type:"black",   label:"검정포맥스 5T · 120×240"},
+  "검정포맥스_8T_90x180":   {w:90, h:180,price:41000,type:"black",   label:"검정포맥스 8T · 90×180"},
+  "검정포맥스_8T_120x240":  {w:120,h:240,price:71000,type:"black",   label:"검정포맥스 8T · 120×240"},
+  "검정포맥스_10T_90x180":  {w:90, h:180,price:52000,type:"black",   label:"검정포맥스 10T · 90×180"},
+  "검정포맥스_10T_120x240": {w:120,h:240,price:88000,type:"black",   label:"검정포맥스 10T · 120×240"},
+  "아크릴_2T_90x180":       {w:90, h:180,price:29000,type:"acrylic", label:"아크릴 2T · 90×180"},
+  "아크릴_2T_120x240":      {w:120,h:240,price:49000,type:"acrylic", label:"아크릴 2T · 120×240"},
+  "아크릴_3T_90x180":       {w:90, h:180,price:40000,type:"acrylic", label:"아크릴 3T · 90×180"},
+  "아크릴_3T_120x240":      {w:120,h:240,price:75000,type:"acrylic", label:"아크릴 3T · 120×240"},
+  "아크릴_5T_90x180":       {w:90, h:180,price:70000,type:"acrylic", label:"아크릴 5T · 90×180"},
+  "아크릴_5T_122x244":      {w:122,h:244,price:117000,type:"acrylic",label:"아크릴 5T · 122×244"},
+  "아크릴_8T_90x180":       {w:90, h:180,price:112000,type:"acrylic",label:"아크릴 8T · 90×180"},
+  "아크릴_8T_120x240":      {w:120,h:240,price:200000,type:"acrylic",label:"아크릴 8T · 120×240"},
+  "아크릴_10T_90x180":      {w:90, h:180,price:135000,type:"acrylic",label:"아크릴 10T · 90×180"},
+  "아크릴_10T_120x240":     {w:120,h:240,price:245000,type:"acrylic",label:"아크릴 10T · 120×240"},
+  "알마이트_2T_122x244":    {w:122,h:244,price:26000,type:"alumite", label:"알마이트 2T · 122×244"},
 };
 
-const SIGN_TYPES  = ["조명용 간판","비조명 간판","15각 파이프","19각 파이프"];
-const CUT_MULT    = 1.5;
-const CNC_MULT    = 2.5;
-const PRINT_SQM   = 18000;
-const MIN_PRINT   = 10000;
-  const MIN_LASER   = 15000;   // 레이저 최소 가공비 (잠정)
-const PIPE_FACTOR = 1.2;
+const CH = {30:25000,35:27000,40:27000,45:29000,50:33000,55:37000,60:41000,
+  65:44000,70:47000,75:50000,80:53000,85:57000,90:59000,95:61000,
+  100:66000,105:68000,110:77000,115:80000,120:89000,125:91000,
+  130:110000,135:133000,140:136000,145:145000,150:165000,155:175000,
+  160:193000,165:205000,170:218000,175:230000,180:242000,190:280000,200:310000};
 
-function calcYield(bw, bh, tw, th) {
-  if (tw > bw && tw > bh) return 0;
-  if (th > bw && th > bh) return 0;
-  return Math.max(
-    Math.floor(bw/tw) * Math.floor(bh/th),
-    Math.floor(bw/th) * Math.floor(bh/tw)
+const SK = {
+  10:[2800,3200,4000,4500,5000],15:[3400,3900,4500,5000,5500],
+  20:[4000,4500,5000,6500,9000],25:[4500,5000,6000,8500,10000],
+  30:[5000,5500,7500,9000,12000],35:[6500,7500,9000,10000,14500],
+  40:[8000,9000,12000,13000,18000],45:[10000,11500,14000,17500,23000],
+  50:[12000,14000,17000,21500,29000],55:[14000,16000,21000,25000,36000],
+  60:[17000,19000,25000,29500,42500],65:[20000,22000,29000,36000,48000],
+  70:[24000,26000,34000,41000,57000],75:[26000,29000,39000,47000,66000],
+  80:[30000,33000,44000,55000,75000],85:[35000,37000,49000,61500,85000],
+  90:[39000,42000,53000,69000,95000],95:[44000,48000,60000,76000,100500],
+  100:[50000,55000,66000,85000,117000]
+};
+
+const CUT=1.5,CNC=2.0,LASER=2.5,MIN_LASER=15000,PRINT=18000,BACK_PRINT=36000,MIN_PRINT=10000;
+
+// ════════════════════════════════════════
+// 유틸
+// ════════════════════════════════════════
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+function yld(bw,bh,tw,th){
+  const tf=Math.floor(tw),th2=Math.floor(th);
+  if(tf>bw&&tf>bh)return 0;
+  if(th2>bw&&th2>bh)return 0;
+  return Math.max((bw/tf|0)*(bh/th2|0),(bw/th2|0)*(bh/tf|0));
+}
+function line(k,v){return `<div class="result-line"><span class="rk">${k}</span><span class="rv">${v}</span></div>`;}
+
+// ════════════════════════════════════════
+// 탭
+// ════════════════════════════════════════
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===n));
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i===n));
+}
+
+// ════════════════════════════════════════
+// 자재 검색
+// ════════════════════════════════════════
+let selMatKey=null;
+const typeLabel={normal:'포맥스',black:'검정',acrylic:'아크릴',alumite:'알마이트'};
+const typeCls={normal:'tag-normal',black:'tag-black',acrylic:'tag-acrylic',alumite:'tag-alumite'};
+
+function searchMat(q){
+  const list=document.getElementById('matList');
+  if(!q.trim()){list.classList.remove('show');return;}
+  const kw=q.toLowerCase().replace(/\s/g,'');
+  const hits=Object.entries(MAT).filter(([k,v])=>
+    v.label.toLowerCase().replace(/\s/g,'').includes(kw)||
+    k.toLowerCase().replace(/[_]/g,'').includes(kw)
   );
+  if(!hits.length){list.classList.remove('show');return;}
+  list.innerHTML=hits.slice(0,12).map(([k,v])=>
+    `<div class="search-item" onmousedown="selectMat('${k}')">${v.label}
+    <span class="tag ${typeCls[v.type]}">${typeLabel[v.type]}</span></div>`
+  ).join('');
+  list.classList.add('show');
+}
+function hideList(){setTimeout(()=>document.getElementById('matList').classList.remove('show'),150);}
+function selectMat(k){
+  selMatKey=k;
+  const v=MAT[k];
+  document.getElementById('matSearch').value='';
+  document.getElementById('matList').classList.remove('show');
+  document.getElementById('selMatLabel').textContent=v.label;
+  document.getElementById('selMatBox').style.display='block';
+}
+function clearMat(){
+  selMatKey=null;
+  document.getElementById('selMatBox').style.display='none';
+  document.getElementById('matSearch').value='';
 }
 
-function calcBoard(matKey, tw, th, proc, printed) {
-  const b = MATERIALS[matKey];
-  if (!b) return {error:"등록되지 않은 자재"};
-  let pieces, unitMat, procType = proc;
+// ════════════════════════════════════════
+// 판재 계산
+// ════════════════════════════════════════
+let _lastMat=null;
+function calcMat(){
+  if(!selMatKey){alert('자재를 먼저 선택해주세요.');return;}
+  const tw=parseFloat(document.getElementById('matW').value);
+  const th=parseFloat(document.getElementById('matH').value);
+  const proc=document.getElementById('procType').value;
+  const qty=parseInt(document.getElementById('matQty').value)||1;
+  const isPrint=document.getElementById('isPrint').checked;
+  const isBack=document.getElementById('isBackPrint').checked;
+  if(!tw||!th){alert('가로·세로를 입력해주세요.');return;}
 
-  if ((tw==b.w&&th==b.h)||(tw==b.h&&th==b.w)) {
-    pieces=1; unitMat=b.price; procType="없음";
-  } else {
-    pieces = calcYield(b.w, b.h, tw, th);
-    if (!pieces) return {error:"원판보다 큰 사이즈입니다"};
-    unitMat = b.price / pieces;
-  }
+  const b=MAT[selMatKey];
+  const pieces=yld(b.w,b.h,tw,th);
+  if(!pieces){alert('원판보다 큰 사이즈입니다.');return;}
+  const um=b.price/pieces;
+  let mult=proc==='재단'?CUT:proc==='cnc'?CNC:proc==='레이저'?LASER:1;
+  let proc_cost=um*mult;
+  if((proc==='cnc'||proc==='레이저')&&proc_cost<MIN_LASER)proc_cost=MIN_LASER;
 
-  let procCost;
-  if      (proc==="재단")           procCost = unitMat * CUT_MULT;
-  else if (proc==="레이저"||proc==="cnc") procCost = Math.max(MIN_LASER, unitMat * CNC_MULT);
-  else                               procCost = unitMat;
+  const area=(tw/100)*(th/100);
+  let pCost=0,bCost=0;
+  if(isPrint){let p=area*PRINT;if(b.type==='black')p*=1.5;pCost=Math.max(MIN_PRINT,p);}
+  if(isBack){let p=area*BACK_PRINT;bCost=Math.max(MIN_PRINT,p);}
 
-  let printCost = 0;
-  if (printed) {
-    let p = (tw/100)*(th/100)*PRINT_SQM;
-    if (b.type==="black") p *= 1.5;
-    printCost = Math.max(MIN_PRINT, p);
-  }
+  const unit=Math.round((proc_cost+pCost+bCost)/100)*100;
+  const total=unit*qty;
+  const minFlag=(proc==='cnc'||proc==='레이저')&&proc_cost===MIN_LASER;
 
-  const total = Math.round((procCost + printCost)/100)*100;
-  return {pieces, unitMat, procCost, printCost, total, procType};
+  let html=line('원판',`${b.label}  (${fmt(b.price)}원)`)
+    +line('수율',`${pieces}개`)
+    +line('개당 자재',`${fmt(Math.round(um))}원`)
+    +line('가공비',`${fmt(Math.round(proc_cost))}원  [${proc}]${minFlag?' ★최소':''}`)
+    +(isPrint?line('평판 인쇄',`${fmt(pCost)}원`):'')
+    +(isBack?line('배면 인쇄',`${fmt(bCost)}원`):'');
+
+  document.getElementById('matLines').innerHTML=html;
+  document.getElementById('matAmt').textContent=fmt(total)+'원';
+  document.getElementById('matSub').textContent=`장당 ${fmt(unit)}원 × ${qty}개`;
+  document.getElementById('matResult').classList.add('show');
+  _lastMat={label:b.label,detail:`${tw}×${th}cm`,proc,qty,unit,total,isPrint,isBack};
+}
+function addMatToList(){
+  if(!_lastMat)return;
+  const badges=[];
+  if(_lastMat.proc!=='없음')badges.push(`<span class="badge-sm ${_lastMat.proc==='재단'?'b-cut':_lastMat.proc==='cnc'?'b-cnc':'b-laser'}">${_lastMat.proc}</span>`);
+  if(_lastMat.isPrint)badges.push('<span class="badge-sm b-print">단면인쇄</span>');
+  if(_lastMat.isBack)badges.push('<span class="badge-sm b-print">배면인쇄</span>');
+  addRow(_lastMat.label,_lastMat.detail+' '+badges.join(' '),_lastMat.qty,_lastMat.total);
+  document.getElementById('matResult').classList.remove('show');
+  _lastMat=null;
 }
 
-function calcSign(pType, wMm, hMm, qty) {
-  const w = wMm/1000, h=(hMm||0)/1000;
-  qty = qty||1;
-  switch(pType) {
-    case "조명용 간판": return Math.round((w+h)*2*11200*PIPE_FACTOR) * qty;
-    case "비조명 간판": return Math.round((w+h)*2*6800 *PIPE_FACTOR) * qty;
-    case "15각 파이프": return Math.round(w*1000*PIPE_FACTOR) * qty;
-    case "19각 파이프": return Math.round(w*1100*PIPE_FACTOR) * qty;
-  }
-  return null;
+// ════════════════════════════════════════
+// 채널 계산
+// ════════════════════════════════════════
+let chRowCount=0;
+function chPrice(gak){
+  const keys=Object.keys(CH).map(Number).sort((a,b)=>a-b);
+  for(const k of keys)if(k>=gak)return CH[k];
+  return CH[200];
 }
-
-// ════════════════════════════════════════════
-//  UI 이벤트
-// ════════════════════════════════════════════
-let quoteItems = [];
-
-function onMaterialChange() {
-  const mat  = document.getElementById("material").value;
-  const isSign = SIGN_TYPES.includes(mat);
-  const isPipe = mat.includes("파이프");
-
-  document.getElementById("unitHint").classList.toggle("show", isSign);
-  document.getElementById("procField").style.opacity  = isSign ? "0.3" : "1";
-  document.getElementById("procField").style.pointerEvents = isSign ? "none" : "auto";
-  document.getElementById("printField").style.opacity = isSign ? "0.3" : "1";
-  document.getElementById("printField").style.pointerEvents = isSign ? "none" : "auto";
-
-  const wLbl = document.getElementById("wLabel");
-  const hLbl = document.getElementById("hLabel");
-  const hInput = document.getElementById("height");
-
-  if (isSign) {
-    wLbl.textContent = isPipe ? "길이 (mm)" : "가로 (mm)";
-    hLbl.textContent = "세로 (mm)";
-    if (isPipe) { hInput.placeholder = "파이프는 비워두기"; hInput.value = ""; }
-  } else {
-    wLbl.textContent = "가로 (cm)";
-    hLbl.textContent = "세로 (cm)";
-    hInput.placeholder = "예: 60";
-  }
-
-  document.getElementById("resultBox").classList.remove("show");
+function addChRow(defaultGak){
+  chRowCount++;
+  const id=chRowCount;
+  const chOptions=Object.keys(CH).sort((a,b)=>a-b).map(k=>`<option value="${k}" ${defaultGak&&Number(k)===defaultGak?'selected':''}>${k}각</option>`).join('');
+  const row=document.createElement('div');
+  row.className='ch-row'; row.id=`chrow${id}`;
+  row.innerHTML=`
+    <div class="ch-row-head">
+      <span class="ch-num">${id}번 글자</span>
+      <button class="btn btn-icon" onclick="removeChRow(${id})">✕ 삭제</button>
+    </div>
+    <div class="ch-grid">
+      <div><label>각수</label>
+        <select id="chGak${id}" onchange="updateChPrice(${id})">${chOptions}</select></div>
+      <div><label>시트 종류</label>
+        <select id="chSheet${id}">
+          <option value="none">채널만</option>
+          <option value="sheet">시트지/실사</option>
+          <option value="solven">솔벤실사</option>
+          <option value="pc3t">3T PC</option>
+        </select></div>
+      <div><label>수량</label>
+        <input type="number" id="chQty${id}" value="1" min="1" step="1"></div>
+      <div><label>단가</label>
+        <div class="ch-price" id="chP${id}">—</div></div>
+    </div>`;
+  document.getElementById('chRows').appendChild(row);
+  updateChPrice(id);
 }
-
-function calculate() {
-  const mat     = document.getElementById("material").value;
-  const w       = parseFloat(document.getElementById("width").value);
-  const h       = parseFloat(document.getElementById("height").value) || 0;
-  const proc    = document.getElementById("procType").value;
-  const printed = document.getElementById("isPrinted").checked;
-  const qty     = parseInt(document.getElementById("qty").value) || 1;
-
-  if (!w) { alert("가로(길이)를 입력해주세요."); return; }
-
-  let lines = [], total = 0, label = "";
-
-  if (SIGN_TYPES.includes(mat)) {
-    const unitP = calcSign(mat, w, h, 1);
-    if (!unitP) { alert("계산 오류: 제품명을 확인해주세요."); return; }
-    total = unitP * qty;
-    lines = [
-      {k:"제품 종류", v: mat},
-      {k:"입력 치수", v: `${w}${h?` × ${h}`:""} mm`},
-      {k:"수량",      v: `${qty}개`},
-      {k:"단위 단가", v: fmt(unitP) + "원"},
-    ];
-    label = `${fmt(total)}원`;
-  } else {
-    const r = calcBoard(mat, w, h, proc, printed);
-    if (r.error) { alert(r.error); return; }
-    const pieces = r.pieces;
-    lines = [
-      {k:"원판 수율",      v: `1장 → ${pieces}개`},
-      {k:"개당 자재 원가", v: fmt(Math.round(r.unitMat)) + "원"},
-      {k:"가공비(자재포함)",v: fmt(Math.round(r.procCost)) + `원  [${r.procType}]` + (r.procType==="레이저"&&r.procCost===MIN_LASER?" ★최소가공비":"") },
-      {k:"평판 인쇄비",    v: fmt(r.printCost) + "원" + (printed && r.printCost===MIN_PRINT ? "  (최소금액)" : "")},
-    ];
-    total = r.total * qty;
-    label = qty > 1
-      ? `${fmt(r.total)}원 × ${qty}개 = ${fmt(total)}원`
-      : `${fmt(r.total)}원`;
-  }
-
-  // 결과 렌더
-  const linesHtml = lines.map(l=>
-    `<div class="result-line"><span class="result-key">${l.k}</span><span class="result-val">${l.v}</span></div>`
-  ).join("");
-  document.getElementById("resultLines").innerHTML = linesHtml;
-  document.getElementById("resultAmount").textContent = fmt(total) + "원";
-  document.getElementById("resultVatNote").textContent = `수량 ${qty}개 기준 · VAT 별도`;
-  document.getElementById("resultBox").classList.add("show");
-
-  // 임시 저장 (추가 버튼용)
-  window._lastCalc = {mat, w, h, proc, printed, qty, unitPrice: Math.round(total/qty), totalPrice: total};
+function updateChPrice(id){
+  const gak=parseInt(document.getElementById(`chGak${id}`).value);
+  document.getElementById(`chP${id}`).textContent=fmt(chPrice(gak))+'원';
 }
-
-function addToList() {
-  if (!window._lastCalc) return;
-  const c = window._lastCalc;
-  const isSign = SIGN_TYPES.includes(c.mat);
-  const sizeStr = isSign
-    ? (c.h ? `${c.w}×${c.h}mm` : `${c.w}mm`)
-    : `${c.w}×${c.h}cm`;
-
-  quoteItems.push({
-    mat:   c.mat,
-    size:  sizeStr,
-    proc:  isSign ? "-" : c.proc,
-    printed: c.printed,
-    qty:   c.qty,
-    unitP: c.unitPrice,
-    totalP: c.totalPrice
+function removeChRow(id){
+  const el=document.getElementById(`chrow${id}`);
+  if(el)el.remove();
+}
+let _lastCh=null;
+function calcChannel(){
+  const rows=document.querySelectorAll('.ch-row');
+  if(!rows.length){alert('글자를 추가해주세요.');return;}
+  let lines='',total=0,items=[];
+  rows.forEach((row,idx)=>{
+    const id=row.id.replace('chrow','');
+    const gak=parseInt(document.getElementById(`chGak${id}`).value);
+    const sheet=document.getElementById(`chSheet${id}`).value;
+    const qty=parseInt(document.getElementById(`chQty${id}`).value)||1;
+    const chVal=chPrice(gak);
+    let extra=0,extraLabel='';
+    const isOver=gak>125;
+    const m=gak/100;
+    if(sheet==='sheet'){extra=isOver?m*m*10000:m*10000;extraLabel=`시트지+${fmt(extra)}`;}
+    else if(sheet==='solven'){extra=isOver?m*m*15000:m*15000;extraLabel=`솔벤+${fmt(extra)}`;}
+    else if(sheet==='pc3t'){extra=m*3000;extraLabel=`3TPC+${fmt(extra)}`;}
+    const unit=chVal+extra;
+    const sub=unit*qty;
+    total+=sub;
+    items.push({gak,sheet,qty,unit,sub});
+    lines+=line(`${idx+1}번 글자 (${gak}각${extraLabel?'/'+extraLabel:''}) ×${qty}`,fmt(sub)+'원');
   });
-
-  renderTable();
-  document.getElementById("resultBox").classList.remove("show");
-  window._lastCalc = null;
+  document.getElementById('chLines').innerHTML=lines;
+  document.getElementById('chAmt').textContent=fmt(total)+'원';
+  document.getElementById('chResult').classList.add('show');
+  _lastCh={items,total};
+}
+function addChToList(){
+  if(!_lastCh)return;
+  const detail=_lastCh.items.map(i=>`${i.gak}각×${i.qty}`).join(', ');
+  addRow('채널 간판',detail+` <span class="badge-sm b-ch">채널</span>`,1,_lastCh.total);
+  document.getElementById('chResult').classList.remove('show');
+  _lastCh=null;
 }
 
-function removeItem(idx) {
-  quoteItems.splice(idx, 1);
-  renderTable();
+// ════════════════════════════════════════
+// 간판 계산
+// ════════════════════════════════════════
+function onSignTypeChange(){updateFlInfo();}
+function updateFlInfo(){
+  const st=document.getElementById('signType').value;
+  const wCm=parseFloat(document.getElementById('signW').value)||0;
+  const h=parseFloat(document.getElementById('signH').value)||0;
+  const box=document.getElementById('flInfo');
+  const hasFL=['단면조명','양면조명','단면돌출','양면돌출'].includes(st);  // 노FL 변형 제외
+  if(!hasFL||!wCm||!h){box.classList.remove('show');return;}
+  const w=Math.max(1.0, wCm/100);  // 1m 미만 → 1m
+  const hM=Math.max(1.0, h/100);
+  const pillars=Math.max(1,Math.round(w));
+  const rows=Math.ceil(hM/0.18);
+  const fl=pillars*rows;
+  const unit=st.includes('돌출')?7000:5000;
+  const wNote=wCm/100<1?` (${(wCm/100).toFixed(2)}m→1m적용)`:'';
+  box.classList.add('show');
+  box.textContent=`형광등${wNote}: ${pillars}기둥 × ${rows}줄 = ${fl}개 × ${fmt(unit)}원 = ${fmt(fl*unit)}원`;
+}
+const SIGN_LIST=[
+  {key:'단면비조명',     label:'단면 비조명',             sub:'34,000원/㎡',              fl:false},
+  {key:'단면비조명후판', label:'단면 비조명 + 후판',       sub:'38,000원/㎡',              fl:false},
+  {key:'양면비조명',     label:'양면 비조명',             sub:'35,000원/㎡',              fl:false},
+  {key:'비조명틀',       label:'비조명 틀',               sub:'27,000원/㎡',              fl:false},
+  {key:'단면조명',       label:'단면 조명 + 형광등',      sub:'46,000원/㎡ + LED 5,000/개', fl:true},
+  {key:'단면조명노FL',   label:'단면 조명 (형광등 없음)', sub:'46,000원/㎡',              fl:false},
+  {key:'양면조명',       label:'양면 조명 + 형광등',      sub:'47,000원/㎡ + LED 5,000/개', fl:true},
+  {key:'양면조명노FL',   label:'양면 조명 (형광등 없음)', sub:'47,000원/㎡',              fl:false},
+  {key:'단면돌출',       label:'단면 돌출 + 형광등',      sub:'85,000원/㎡ + LED 7,000/개', fl:true},
+  {key:'단면돌출노FL',   label:'단면 돌출 (형광등 없음)', sub:'85,000원/㎡',              fl:false},
+  {key:'양면돌출',       label:'양면 돌출 + 형광등',      sub:'87,000원/㎡ + LED 7,000/개', fl:true},
+  {key:'양면돌출노FL',   label:'양면 돌출 (형광등 없음)', sub:'87,000원/㎡',              fl:false},
+];
+
+let selSignKey=null;
+function searchSign(q){
+  const list=document.getElementById('signSearchList');
+  if(!q.trim()){list.classList.remove('show');return;}
+  const kw=q.toLowerCase().replace(/\s/g,'');
+  const hits=SIGN_LIST.filter(it=>
+    it.label.toLowerCase().replace(/\s/g,'').includes(kw)||
+    it.key.toLowerCase().includes(kw)
+  );
+  if(!hits.length){list.classList.remove('show');return;}
+  list.innerHTML=hits.map(it=>
+    `<div class="search-item" onmousedown="selectSign('${it.key}')">
+      ${it.label}<br><span style="font-size:11px;color:var(--tx2)">${it.sub}</span>
+    </div>`
+  ).join('');
+  list.classList.add('show');
+}
+function hideSignList(){setTimeout(()=>document.getElementById('signSearchList').classList.remove('show'),150);}
+function selectSign(key){
+  selSignKey=key;
+  const it=SIGN_LIST.find(x=>x.key===key);
+  document.getElementById('signSearch').value='';
+  document.getElementById('signSearchList').classList.remove('show');
+  document.getElementById('signType').value=key;
+  document.getElementById('selSignLabel').textContent=it.label+' — '+it.sub;
+  document.getElementById('selSignBox').style.display='block';
+  updateFlInfo();
+}
+function clearSign(){
+  selSignKey=null;
+  document.getElementById('selSignBox').style.display='none';
+  document.getElementById('signSearch').value='';
+  document.getElementById('signType').value='';
+  document.getElementById('flInfo').classList.remove('show');
+}
+function onSignTypeChange(){updateFlInfo();}
+
+const SIGN_RATES={단면비조명:34000,단면비조명후판:38000,양면비조명:35000,비조명틀:27000,
+  단면조명:46000,단면조명노FL:46000,양면조명:47000,양면조명노FL:47000,
+  단면돌출:85000,단면돌출노FL:85000,양면돌출:87000,양면돌출노FL:87000};
+let _lastSign=null;
+function calcSign(){
+  const st=document.getElementById('signType').value;
+  if(!st){alert('간판 종류를 먼저 검색·선택해주세요.');return;}
+  const wCm=parseFloat(document.getElementById('signW').value);
+  const hCm=parseFloat(document.getElementById('signH').value);
+  if(!wCm||!hCm){alert('가로·세로를 입력해주세요.');return;}
+  const wRaw=wCm/100;
+  const hRaw=hCm/100;
+  const w=Math.max(1.0,wRaw);  // 가로 1m 미만 → 1m
+  const h=Math.max(1.0,hRaw);  // 세로 1m 미만 → 1m
+  const hebe=w*h;
+  const rate=SIGN_RATES[st];
+  const base=hebe*rate;
+  const hasFL=['단면조명','양면조명','단면돌출','양면돌출'].includes(st);  // 노FL 변형 제외
+  let flCost=0,flCount=0;
+  if(hasFL){
+    const pillars=Math.max(1,Math.round(w));  // 최소 1기둥
+    const rows=Math.ceil(h/0.18);
+    flCount=pillars*rows;
+    const unit=st.includes('돌출')?7000:5000;
+    flCost=flCount*unit;
+  }
+  const total=Math.round((base+flCost)/100)*100;
+  const label={단면비조명:'단면 비조명',단면비조명후판:'단면 비조명+후판',양면비조명:'양면 비조명',
+    비조명틀:'비조명 틀',단면조명:'단면 조명',단면조명노FL:'단면 조명(형광등 없음)',
+    양면조명:'양면 조명',양면조명노FL:'양면 조명(형광등 없음)',
+    단면돌출:'단면 돌출',단면돌출노FL:'단면 돌출(형광등 없음)',
+    양면돌출:'양면 돌출',양면돌출노FL:'양면 돌출(형광등 없음)'};
+  const wNote=wRaw<1?` (${wRaw.toFixed(2)}m→1m 적용)`:'';
+  const hNote=hRaw<1?` (${hRaw.toFixed(2)}m→1m 적용)`:'';
+  let html=line('간판 종류',label[st])
+    +(wRaw<1?line('가로 적용',`${wRaw.toFixed(2)}m → 1.00m${wNote}`):'')
+    +(hRaw<1?line('세로 적용',`${hRaw.toFixed(2)}m → 1.00m${hNote}`):'')
+    +line('헤베',`${w.toFixed(2)}×${h.toFixed(2)} = ${hebe.toFixed(4)}㎡`)
+    +line('기본가',`${hebe.toFixed(4)} × ${fmt(rate)}원 = ${fmt(base)}원`);
+  if(hasFL){
+    const unit=st.includes('돌출')?7000:5000;
+    html+=line('형광등',`${flCount}개 × ${fmt(unit)}원 = ${fmt(flCost)}원`);
+  }
+  document.getElementById('signLines').innerHTML=html;
+  document.getElementById('signAmt').textContent=fmt(total)+'원';
+  document.getElementById('signResult').classList.add('show');
+  _lastSign={label:label[st],detail:`${wCm}×${hCm}cm`,total};
+}
+function addSignToList(){
+  if(!_lastSign)return;
+  addRow(_lastSign.label,_lastSign.detail+` <span class="badge-sm b-sign">간판</span>`,1,_lastSign.total);
+  document.getElementById('signResult').classList.remove('show');
+  _lastSign=null;
 }
 
-function renderTable() {
-  const tbody = document.getElementById("quoteBody");
-  document.getElementById("itemCount").textContent = `품목 ${quoteItems.length}개`;
+// ════════════════════════════════════════
+// 스카시 계산
+// ════════════════════════════════════════
+const SK_LABELS=['10~20T 알루','30T 알루','50T 알루','10~30T 수입밀러','50T 수입밀러'];
+const SK_ALL=[];
+(()=>{
+  const gaks=Object.keys(SK).map(Number).sort((a,b)=>a-b);
+  gaks.forEach(g=>SK_LABELS.forEach((lbl,ti)=>
+    SK_ALL.push({gak:g,typeIdx:ti,label:`${g}각 · ${lbl}`,price:SK[g][ti]})
+  ));
+})();
 
-  if (!quoteItems.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">품목을 추가해주세요</td></tr>';
-    document.getElementById("summaryBox").style.display = "none";
-    document.getElementById("actionRow").style.display  = "none";
+let selSkKey=null;
+function searchSk(q){
+  const list=document.getElementById('skList');
+  if(!q.trim()){list.classList.remove('show');return;}
+  const kw=q.toLowerCase().replace(/\s/g,'').replace('각','');
+  const hits=SK_ALL.filter(it=>
+    String(it.gak).includes(kw)||
+    it.label.toLowerCase().replace(/\s/g,'').includes(kw)
+  );
+  if(!hits.length){list.classList.remove('show');return;}
+  list.innerHTML=hits.slice(0,15).map((it,i)=>
+    `<div class="search-item" onmousedown="selectSk(${it.gak},${it.typeIdx})">${it.label}
+    <span style="float:right;font-family:var(--mono);font-size:11px;color:var(--acc)">${fmt(it.price)}원</span></div>`
+  ).join('');
+  list.classList.add('show');
+}
+function hideSkList(){setTimeout(()=>document.getElementById('skList').classList.remove('show'),150);}
+function selectSk(gak,ti){
+  selSkKey={gak,ti};
+  const it=SK_ALL.find(x=>x.gak===gak&&x.typeIdx===ti);
+  document.getElementById('skSearch').value='';
+  document.getElementById('skList').classList.remove('show');
+  document.getElementById('selSkLabel').textContent=it.label+`  (${fmt(it.price)}원)`;
+  document.getElementById('selSkBox').style.display='block';
+}
+function clearSk(){
+  selSkKey=null;
+  document.getElementById('selSkBox').style.display='none';
+  document.getElementById('skSearch').value='';
+}
+
+let _lastSk=null;
+function calcSkasi(){
+  if(!selSkKey){alert('스카시를 먼저 검색·선택해주세요.');return;}
+  const {gak,ti}=selSkKey;
+  const sheet=document.getElementById('skSheet').value;
+  const qty=parseInt(document.getElementById('skQty').value)||1;
+  if(!SK[gak]){alert('해당 규격 없음');return;}
+  const skUnit=SK[gak][ti];
+  const m=gak/100; const over=gak>125;
+  let extra=0,extraLabel='';
+  if(sheet==='sheet'){extra=over?m*m*10000:m*10000;extraLabel='시트지/실사 부착';}
+  else if(sheet==='solven'){extra=over?m*m*15000:m*15000;extraLabel='솔벤실사 부착';}
+  const unit=skUnit+extra;
+  const total=unit*qty;
+  let html=line('규격',`${gak}각`)
+    +line('종류',SK_LABELS[ti])
+    +line('스카시 단가',`${fmt(skUnit)}원`);
+  if(extra>0)html+=line(extraLabel,`+${fmt(extra)}원`+(over?' (면적계산)':''));
+  html+=line('개당 단가',`${fmt(unit)}원`);
+  document.getElementById('skLines').innerHTML=html;
+  document.getElementById('skAmt').textContent=fmt(total)+'원';
+  document.getElementById('skSub').textContent=`${fmt(unit)}원 × ${qty}개`;
+  document.getElementById('skResult').classList.add('show');
+  const sheetBadge=sheet!=='none'?` <span class="badge-sm b-print">${extraLabel}</span>`:'';
+  _lastSk={label:`스카시 ${gak}각`,detail:`${SK_LABELS[ti]}${sheetBadge} ×${qty}`,qty,unit,total};
+}
+function addSkToList(){
+  if(!_lastSk)return;
+  addRow(_lastSk.label,_lastSk.detail,_lastSk.qty,_lastSk.total);
+  document.getElementById('skResult').classList.remove('show');
+  _lastSk=null;
+}
+
+// ════════════════════════════════════════
+// 견적 목록
+// ════════════════════════════════════════
+let qItems=[];
+function addRow(name,detail,qty,total){
+  qItems.push({name,detail,qty,total});
+  renderQ();
+}
+function removeRow(i){qItems.splice(i,1);renderQ();}
+function renderQ(){
+  document.getElementById('itemCnt').textContent=`품목 ${qItems.length}개`;
+  const tbody=document.getElementById('qBody');
+  if(!qItems.length){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="5">품목을 추가해주세요</td></tr>';
+    document.getElementById('sumBox').style.display='none';
+    document.getElementById('actRow').style.display='none';
     return;
   }
-
-  let html = "";
-  quoteItems.forEach((item, i) => {
-    const procTag = item.proc === "재단"
-      ? `<span class="tag tag-cut">재단</span>`
-      : item.proc === "레이저" || item.proc === "cnc"
-        ? `<span class="tag tag-cnc">레이저</span>`
-        : `<span class="tag tag-none">-</span>`;
-    const printTag = item.printed
-      ? `<span class="tag tag-print">인쇄</span>` : "";
-
-    html += `<tr>
-      <td style="max-width:140px;word-break:break-all;font-size:12px;">${item.mat}</td>
-      <td style="font-family:var(--mono);font-size:12px;">${item.size}</td>
-      <td>${procTag}${printTag}</td>
-      <td style="font-family:var(--mono);">${item.qty}</td>
-      <td class="price-cell">${fmt(item.totalP)}</td>
-      <td><button class="del-btn" onclick="removeItem(${i})">×</button></td>
-    </tr>`;
-  });
-  tbody.innerHTML = html;
-
-  // 합계
-  const subtotal = quoteItems.reduce((s,it) => s + it.totalP, 0);
-  const vat      = Math.round(subtotal * 0.1 / 100) * 100;
-  const total    = subtotal + vat;
-
-  document.getElementById("subtotalEl").textContent = fmt(subtotal) + "원";
-  document.getElementById("vatEl").textContent      = fmt(vat)      + "원";
-  document.getElementById("totalEl").textContent    = fmt(total)    + "원";
-  document.getElementById("summaryBox").style.display = "block";
-  document.getElementById("actionRow").style.display  = "grid";
+  tbody.innerHTML=qItems.map((it,i)=>`<tr>
+    <td style="font-size:12px;max-width:100px;word-break:break-all;">${it.name}</td>
+    <td style="font-size:11px;color:var(--tx2);">${it.detail}</td>
+    <td style="font-family:var(--mono);text-align:center;">${it.qty}</td>
+    <td class="price-cell">${fmt(it.total)}</td>
+    <td><button class="del-btn" onclick="removeRow(${i})">×</button></td>
+  </tr>`).join('');
+  const sub=qItems.reduce((s,it)=>s+it.total,0);
+  const vat=Math.round(sub*0.1/100)*100;
+  document.getElementById('subEl').textContent=fmt(sub)+'원';
+  document.getElementById('vatEl').textContent=fmt(vat)+'원';
+  document.getElementById('totEl').textContent=fmt(sub+vat)+'원';
+  document.getElementById('sumBox').style.display='block';
+  document.getElementById('actRow').style.display='grid';
 }
-
-function clearAll() {
-  if (!confirm("견적 목록을 모두 초기화할까요?")) return;
-  quoteItems = [];
-  renderTable();
-}
-
-function printQuote() {
-  const client = document.getElementById("clientName").value || "고 객 사";
-  const today  = new Date().toLocaleDateString("ko-KR", {year:"numeric",month:"long",day:"numeric"});
-  document.getElementById("printMeta").textContent = `수신: ${client}  |  견적일: ${today}  |  VAT 별도`;
+function clearAll(){if(!confirm('전체 초기화할까요?'))return;qItems=[];renderQ();}
+function doPrint(){
+  const client=document.getElementById('clientName').value||'고객사';
+  const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('phMeta').textContent=`수신: ${client}  |  견적일: ${today}  |  VAT 별도`;
   window.print();
 }
 
-function fmt(n) {
-  return Math.round(n).toLocaleString("ko-KR");
+// 채널 검색
+function searchCh(q){
+  const list=document.getElementById('chSearchList');
+  if(!q.trim()){list.classList.remove('show');return;}
+  const kw=q.replace('각','').trim();
+  const hits=Object.keys(CH).map(Number).sort((a,b)=>a-b)
+    .filter(k=>String(k).includes(kw));
+  if(!hits.length){list.classList.remove('show');return;}
+  list.innerHTML=hits.slice(0,10).map(k=>
+    `<div class="search-item" onmousedown="addChRowFromSearch(${k})">${k}각
+    <span style="float:right;font-family:var(--mono);font-size:11px;color:var(--acc)">${fmt(CH[k])}원</span></div>`
+  ).join('');
+  list.classList.add('show');
+}
+function hideChList(){setTimeout(()=>document.getElementById('chSearchList').classList.remove('show'),150);}
+function addChRowFromSearch(gak){
+  document.getElementById('chSearch').value='';
+  document.getElementById('chSearchList').classList.remove('show');
+  addChRow(gak);
 }
 
-// 초기화
-onMaterialChange();
+// 초기 채널 행 1개
+addChRow();
 </script>
 </body>
 </html>
