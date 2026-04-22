@@ -38,7 +38,7 @@ header{display:flex;align-items:center;justify-content:space-between;
   background:rgba(79,124,255,.12);color:var(--acc);border:1px solid rgba(79,124,255,.2);}
 
 /* ── 탭 ── */
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:20px;}
 .tab{padding:10px;text-align:center;font-size:13px;font-weight:500;
   background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);
   cursor:pointer;transition:all .15s;color:var(--tx2);}
@@ -225,6 +225,7 @@ select option{background:#1a1d27;}
   <div class="tab" onclick="switchTab(1)"><span class="tab-icon">🔡</span>채널 간판</div>
   <div class="tab" onclick="switchTab(2)"><span class="tab-icon">📺</span>프레임 간판</div>
   <div class="tab" onclick="switchTab(3)"><span class="tab-icon">✦</span>스카시</div>
+  <div class="tab" onclick="switchTab(4)"><span class="tab-icon">🔩</span>바재단</div>
 </div>
 
 <div class="layout">
@@ -375,6 +376,51 @@ select option{background:#1a1d27;}
       <div class="rt-sub" id="skSub"></div>
     </div>
     <button class="btn btn-sec" onclick="addSkToList()">+ 견적 목록에 추가</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ 탭4: 바재단 ══ -->
+<div class="panel" id="tab4">
+<div class="card">
+  <div class="sec-title">간판 바재단</div>
+  <div class="field">
+    <label>바재단 종류</label>
+    <select id="barType" onchange="onBarTypeChange()">
+      <optgroup label="── 간판 ──">
+        <option value="조명간판">조명용 간판 ((W+H)×2×11,200×1.2)</option>
+        <option value="비조명간판">비조명 간판 ((W+H)×2×6,800×1.2)</option>
+      </optgroup>
+      <optgroup label="── 파이프 ──">
+        <option value="파이프15">15각 파이프 (길이×1,000×1.2)</option>
+        <option value="파이프19">19각 파이프 (길이×1,100×1.2)</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <!-- 간판용 입력 -->
+  <div id="barSignInput">
+    <div class="row2">
+      <div class="field"><label>가로 (cm)</label><input type="number" id="barW" placeholder="예: 1400" min="1" step="1"></div>
+      <div class="field"><label>세로 (cm)</label><input type="number" id="barH" placeholder="예: 160" min="1" step="1"></div>
+    </div>
+    <div class="field"><label>수량</label><input type="number" id="barSignQty" value="1" min="1"></div>
+  </div>
+
+  <!-- 파이프용 입력 (다중 행) -->
+  <div id="barPipeInput" style="display:none">
+    <div class="pipe-rows" id="pipeRows"></div>
+    <button class="btn btn-sec" onclick="addPipeRow()" style="margin-bottom:12px;">+ 파이프 추가</button>
+  </div>
+
+  <button class="btn btn-pri" onclick="calcBar()">바재단 계산</button>
+  <div class="result" id="barResult">
+    <div id="barLines"></div>
+    <div class="result-total">
+      <div class="rt-lbl">최종 금액 (VAT 별도)</div>
+      <div class="rt-amt" id="barAmt">—</div>
+    </div>
+    <button class="btn btn-sec" onclick="addBarToList()">+ 견적 목록에 추가</button>
   </div>
 </div>
 </div>
@@ -675,13 +721,15 @@ function updateFlInfo(){
   if(!hasFL||!wCm||!h){box.classList.remove('show');return;}
   const w=Math.max(1.0, wCm/100);  // 1m 미만 → 1m
   const hM=Math.max(1.0, h/100);
-  const pillars=Math.max(1,Math.round(w));
-  const rows=Math.ceil(hM/0.18);
+  const longer2=Math.max(w,hM);
+  const shorter2=Math.min(w,hM);
+  const pillars=Math.max(1,Math.round(longer2));
+  const rowsRaw2=shorter2/0.18;
+  const rows=Math.max(1,Math.round(rowsRaw2));
   const fl=pillars*rows;
   const unit=st.includes('돌출')?7000:5000;
-  const wNote=wCm/100<1?` (${(wCm/100).toFixed(2)}m→1m적용)`:'';
   box.classList.add('show');
-  box.textContent=`형광등${wNote}: ${pillars}기둥 × ${rows}줄 = ${fl}개 × ${fmt(unit)}원 = ${fmt(fl*unit)}원`;
+  box.textContent=`형광등: 짧은쪽${(shorter2*100).toFixed(0)}cm÷18=${rowsRaw2.toFixed(2)}→${rows}줄 / 긴쪽${(longer2*100).toFixed(0)}cm→${pillars}기둥 = ${fl}개 × ${fmt(unit)}원 = ${fmt(fl*unit)}원`;
 }
 const SIGN_LIST=[
   {key:'단면비조명',     label:'단면 비조명',             sub:'34,000원/㎡',              fl:false},
@@ -755,8 +803,12 @@ function calcSign(){
   const hasFL=['단면조명','양면조명','단면돌출','양면돌출'].includes(st);  // 노FL 변형 제외
   let flCost=0,flCount=0;
   if(hasFL){
-    const pillars=Math.max(1,Math.round(w));  // 최소 1기둥
-    const rows=Math.ceil(h/0.18);
+    const longer=Math.max(w,h);   // 긴 쪽 → m당 기둥수
+    const shorter=Math.min(w,h);  // 짧은 쪽 → ÷18 반올림
+    const pillars=Math.max(1,Math.round(longer));
+    const rowsRaw=shorter/0.18;
+    // 소수점 .5 이하 → 내림, .5 초과 → 올림 (일반 반올림)
+    const rows=Math.max(1,Math.round(rowsRaw));
     flCount=pillars*rows;
     const unit=st.includes('돌출')?7000:5000;
     flCost=flCount*unit;
@@ -775,8 +827,11 @@ function calcSign(){
     +line('헤베',`${w.toFixed(2)}×${h.toFixed(2)} = ${hebe.toFixed(4)}㎡`)
     +line('기본가',`${hebe.toFixed(4)} × ${fmt(rate)}원 = ${fmt(base)}원`);
   if(hasFL){
-    const unit=st.includes('돌출')?7000:5000;
-    html+=line('형광등',`${flCount}개 × ${fmt(unit)}원 = ${fmt(flCost)}원`);
+    const unit2=st.includes('돌출')?7000:5000;
+    const longer3=Math.max(w,h),shorter3=Math.min(w,h);
+    const p3=Math.max(1,Math.round(longer3)),r3=Math.max(1,Math.round(shorter3/0.18));
+    html+=line('형광등 계산',`짧은쪽${(shorter3*100).toFixed(0)}÷18=${(shorter3/0.18).toFixed(2)}→${r3}줄 / 긴쪽→${p3}기둥`);
+    html+=line('형광등',`${flCount}개 × ${fmt(unit2)}원 = ${fmt(flCost)}원`);
   }
   document.getElementById('signLines').innerHTML=html;
   document.getElementById('signAmt').textContent=fmt(total)+'원';
@@ -905,6 +960,89 @@ function doPrint(){
   const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
   document.getElementById('phMeta').textContent=`수신: ${client}  |  견적일: ${today}  |  VAT 별도`;
   window.print();
+}
+
+// ════════════════════════════════════════
+// 바재단 계산
+// ════════════════════════════════════════
+const FACTOR = 1.2;
+let pipeRowCount = 0;
+let _lastBar = null;
+
+function onBarTypeChange(){
+  const t = document.getElementById('barType').value;
+  const isPipe = t.startsWith('파이프');
+  document.getElementById('barSignInput').style.display = isPipe ? 'none' : 'block';
+  document.getElementById('barPipeInput').style.display = isPipe ? 'block' : 'none';
+  if(isPipe && document.getElementById('pipeRows').children.length === 0) addPipeRow();
+}
+
+function addPipeRow(){
+  pipeRowCount++;
+  const id = pipeRowCount;
+  const row = document.createElement('div');
+  row.className = 'ch-row'; row.id = `prow${id}`;
+  row.innerHTML = `
+    <div class="ch-row-head">
+      <span class="ch-num">${id}번 파이프</span>
+      <button class="btn btn-icon" onclick="document.getElementById('prow${id}').remove()">✕</button>
+    </div>
+    <div class="row2">
+      <div class="field"><label>길이 (cm)</label><input type="number" id="pLen${id}" placeholder="예: 160" min="1" step="1"></div>
+      <div class="field"><label>수량</label><input type="number" id="pQty${id}" value="1" min="1"></div>
+    </div>`;
+  document.getElementById('pipeRows').appendChild(row);
+}
+
+function calcBar(){
+  const t = document.getElementById('barType').value;
+  const isPipe = t.startsWith('파이프');
+  let html = '', total = 0;
+
+  if(!isPipe){
+    const w = parseFloat(document.getElementById('barW').value);
+    const h = parseFloat(document.getElementById('barH').value);
+    const qty = parseInt(document.getElementById('barSignQty').value)||1;
+    if(!w||!h){alert('가로·세로를 입력해주세요.');return;}
+    const wm = w/100, hm = h/100;
+    const price = t==='조명간판' ? 11200 : 6800;
+    const label = t==='조명간판' ? '조명용 간판' : '비조명 간판';
+    const unit = Math.round((wm+hm)*2*price*FACTOR);
+    total = unit * qty;
+    html = line('종류', label)
+      + line('공식', `(${wm.toFixed(2)}+${hm.toFixed(2)})×2×${fmt(price)}×1.2`)
+      + line('단위 금액', `${fmt(unit)}원`)
+      + (qty>1 ? line('수량', `×${qty}개`) : '');
+  } else {
+    const unitPrice = t==='파이프15' ? 1000 : 1100;
+    const label = t==='파이프15' ? '15각 파이프' : '19각 파이프';
+    const rows = document.querySelectorAll('.ch-row[id^="prow"]');
+    if(!rows.length){alert('파이프를 추가해주세요.');return;}
+    html = line('종류', label);
+    rows.forEach((row,idx)=>{
+      const id = row.id.replace('prow','');
+      const len = parseFloat(document.getElementById(`pLen${id}`).value)||0;
+      const qty = parseInt(document.getElementById(`pQty${id}`).value)||1;
+      if(!len) return;
+      const m = len/100;
+      const sub = Math.round(m*qty*unitPrice*FACTOR);
+      total += sub;
+      html += line(`${idx+1}번 (${len}cm×${qty}개)`, `${m.toFixed(2)}m×${qty}×${fmt(unitPrice)}×1.2 = ${fmt(sub)}원`);
+    });
+  }
+
+  document.getElementById('barLines').innerHTML = html;
+  document.getElementById('barAmt').textContent = fmt(total)+'원';
+  document.getElementById('barResult').classList.add('show');
+  const typeLabel = {조명간판:'조명간판 바재단',비조명간판:'비조명간판 바재단',파이프15:'15각 파이프',파이프19:'19각 파이프'};
+  _lastBar = {label: typeLabel[t], total};
+}
+
+function addBarToList(){
+  if(!_lastBar) return;
+  addRow(_lastBar.label, `<span class="badge-sm b-sign">바재단</span>`, 1, _lastBar.total);
+  document.getElementById('barResult').classList.remove('show');
+  _lastBar = null;
 }
 
 // 채널 검색
