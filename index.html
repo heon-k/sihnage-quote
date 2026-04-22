@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>간판 견적 시스템</title>
+
+<!-- PWA 설정 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4f7cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="간판견적">
+<meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1068,6 +1076,29 @@ function addChRowFromSearch(gak){
 
 // 초기 채널 행 1개
 addChRow();
+</script>
+
+<script>
+// 서비스워커 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sihnage-quote/sw.js')
+      .then(reg => {
+        console.log('[PWA] 서비스워커 등록 완료:', reg.scope);
+        // 새 버전이 있으면 자동 업데이트
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // 새 버전 감지 시 알림 (선택사항)
+              console.log('[PWA] 새 버전이 적용되었습니다.');
+            }
+          });
+        });
+      })
+      .catch(err => console.log('[PWA] 서비스워커 등록 실패:', err));
+  });
+}
 </script>
 </body>
 </html>
